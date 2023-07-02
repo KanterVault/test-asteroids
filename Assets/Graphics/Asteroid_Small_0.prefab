@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8415319162618208434}
   - component: {fileID: 7579879479347984352}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Line (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 1258708736427049719}
   m_LocalRotation: {x: -0, y: -0, z: 0.13560358, w: -0.9907632}
   m_LocalPosition: {x: -0.05199991, y: 0.10199996, z: 0}
-  m_LocalScale: {x: 0.03173216, y: 0.16492715, z: 1}
+  m_LocalScale: {x: 0.06, y: 0.16492715, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3880972705791924582}
@@ -94,7 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3406583607843650933}
   - component: {fileID: 4545179036639763380}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Line (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -110,7 +110,7 @@ Transform:
   m_GameObject: {fileID: 5406058282248687083}
   m_LocalRotation: {x: -0, y: -0, z: 0.8765424, w: -0.48132476}
   m_LocalPosition: {x: 0.03000009, y: 0.13199997, z: 0}
-  m_LocalScale: {x: 0.03173216, y: 0.16492715, z: 1}
+  m_LocalScale: {x: 0.06, y: 0.16492715, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3880972705791924582}
@@ -178,7 +178,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9201699274292517025}
   - component: {fileID: 1320301578243370723}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Line (5)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -194,7 +194,7 @@ Transform:
   m_GameObject: {fileID: 6471455661826449438}
   m_LocalRotation: {x: -0, y: -0, z: 0.47492856, w: 0.8800244}
   m_LocalPosition: {x: -0.11099991, y: -0.07200004, z: 0}
-  m_LocalScale: {x: 0.031732157, y: 0.2504171, z: 1}
+  m_LocalScale: {x: 0.06, y: 0.2504171, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3880972705791924582}
@@ -262,7 +262,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8771263501444017356}
   - component: {fileID: 7128912412107306817}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Line (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -278,7 +278,7 @@ Transform:
   m_GameObject: {fileID: 6762872726254356978}
   m_LocalRotation: {x: -0, y: -0, z: 0.6173184, w: -0.7867134}
   m_LocalPosition: {x: -0.14199992, y: 0.01599996, z: 0}
-  m_LocalScale: {x: 0.03173216, y: 0.16492715, z: 1}
+  m_LocalScale: {x: 0.06, y: 0.16492715, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3880972705791924582}
@@ -346,7 +346,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2969400547460615914}
   - component: {fileID: 8246106320550259232}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Line (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -362,7 +362,7 @@ Transform:
   m_GameObject: {fileID: 7464590707675153803}
   m_LocalRotation: {x: -0, y: -0, z: 0.91433483, w: 0.40495917}
   m_LocalPosition: {x: 0.035000116, y: -0.10100007, z: 0}
-  m_LocalScale: {x: 0.031732157, y: 0.14778319, z: 1}
+  m_LocalScale: {x: 0.06, y: 0.14778319, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3880972705791924582}
@@ -430,7 +430,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3880972705791924582}
   - component: {fileID: 1879098275908789320}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Asteroid_Small_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -456,7 +456,7 @@ Transform:
   - {fileID: 8771263501444017356}
   - {fileID: 9201699274292517025}
   m_Father: {fileID: 0}
-  m_RootOrder: 11
+  m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!60 &1879098275908789320
 PolygonCollider2D:
@@ -502,12 +502,11 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: -0.0074329376, y: -0.140226}
-      - {x: 0.081943035, y: -0.057721853}
-      - {x: 0.09411144, y: 0.08973211}
-      - {x: -0.030056298, y: 0.16658676}
-      - {x: -0.07305688, y: 0.036467433}
-      - {x: -0.2113797, y: -0.0055812}
+    - - {x: -0.014019966, y: -0.22749424}
+      - {x: 0.14121962, y: -0.097239494}
+      - {x: 0.1599741, y: 0.117723644}
+      - {x: -0.06234771, y: 0.27063525}
+      - {x: -0.30322236, y: -0.016757846}
   m_UseDelaunayMesh: 0
 --- !u!1 &8853392545509116796
 GameObject:
@@ -519,7 +518,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3922929870048152064}
   - component: {fileID: 2139539507009474444}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Line (0)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -535,7 +534,7 @@ Transform:
   m_GameObject: {fileID: 8853392545509116796}
   m_LocalRotation: {x: -0, y: -0, z: 0.9994694, w: 0.03257139}
   m_LocalPosition: {x: 0.088, y: 0.023, z: 0}
-  m_LocalScale: {x: 0.03173216, y: 0.16492715, z: 1}
+  m_LocalScale: {x: 0.06, y: 0.16492715, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3880972705791924582}
