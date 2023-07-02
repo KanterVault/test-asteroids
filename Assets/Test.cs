@@ -5,10 +5,16 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
-using static Unity.Collections.AllocatorManager;
 
 public class Test : MonoBehaviour
 {
+    [Header("CheatMenu")]
+    [SerializeField] private bool spawnRockTest = false;
+    [SerializeField] private bool godMod = false;
+    [SerializeField] private bool unlimitHP = false;
+    [SerializeField] private bool minigun = false;
+
+    [Space(20)]
     private InputActions _inputActions = null;
     [SerializeField] private SpaceshipView spaceship;
     [SerializeField] private SpaceshipView spaceshipPrefab;
@@ -17,6 +23,12 @@ public class Test : MonoBehaviour
     [SerializeField] private float decelerate = 0.075f;
     [SerializeField] private float maxVelocity = 0.3f;
     [SerializeField] private Camera cam;
+
+    [SerializeField] private float dieTimeout = 1.0f;
+
+
+
+    [SerializeField] private float rockKillZoneRadius = 1.8f;
 
     [SerializeField] private int largeScore = 10;
     [SerializeField] private int mediumScore = 40;
@@ -196,6 +208,13 @@ public class Test : MonoBehaviour
     private void Fire(InputAction.CallbackContext obj)
     {
         clickAudio.Play();
+        if (minigun)
+        {
+            StartCoroutine(Bullet());
+            StartCoroutine(Bullet());
+            StartCoroutine(Bullet());
+            StartCoroutine(Bullet());
+        }
         StartCoroutine(Bullet());
     }
 
@@ -277,10 +296,10 @@ public class Test : MonoBehaviour
         _currentVelocity = Vector3.zero;
         if (!gameOverText.activeInHierarchy) gameOverText.SetActive(true);
         if (health == 0) gameOverAudio.Play();
-        yield return new WaitForSeconds(3.0f);
+        yield return new WaitForSeconds(dieTimeout);
         if (health == 0) yield break;
         if (gameOverText.activeInHierarchy) gameOverText.SetActive(false);
-        spaceship = Instantiate(spaceshipPrefab.gameObject, Vector3.zero, Quaternion.identity).GetComponent<SpaceshipView>();
+        spaceship = Instantiate(spaceshipPrefab.gameObject, GetSpawnPointWithNotOverlap(), Quaternion.identity).GetComponent<SpaceshipView>();
     }
 
     private IEnumerator Explosion(Vector3 pos)
@@ -297,11 +316,24 @@ public class Test : MonoBehaviour
     private Collider2D[] _collisions = new Collider2D[1];
     private void Update()
     {
+        if (unlimitHP) health = 5;
+
+        if (spawnRockTest)
+        {
+            spawnRockTest = false;
+            SpawnRock(
+                RockType.Large,
+                new Vector3(
+                    Random.Range(-_viewportSizeInWorld.x, _viewportSizeInWorld.x),
+                    Random.Range(-_viewportSizeInWorld.y, _viewportSizeInWorld.y),
+                    0.0f));
+        }
+
         if (spaceship == null) return;
 
         _collisions[0] = null;
         spaceship.PolygonCollider2D.OverlapCollider(_contactFilter2D, _collisions);
-        if (_collisions[0] != null)
+        if (_collisions[0] != null && godMod == false)
         {
             StartCoroutine(Explosion(spaceship.transform.position));
             StartCoroutine(GameOver());
@@ -372,6 +404,24 @@ public class Test : MonoBehaviour
         }
     }
 
+    private Vector3 GetSpawnPointWithNotOverlap()
+    {
+        var currentPos = Vector3.zero;
+        for (var i = 0; i < _rocks.Count; i++)
+        {
+            var rock = _rocks[i];
+            if (Vector3.Distance(currentPos, rock.Instance.transform.position) < rockKillZoneRadius)
+            {
+                currentPos = new Vector3(
+                    Random.Range(-_viewportSizeInWorld.x, _viewportSizeInWorld.x),
+                    Random.Range(-_viewportSizeInWorld.y, _viewportSizeInWorld.y),
+                    0.0f);
+                i = 0;
+            }
+        }
+        return currentPos;
+    }
+    
     private void OnDisable()
     {
         if (currentScore >= totalScore)
