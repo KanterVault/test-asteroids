@@ -14,14 +14,16 @@ public class Test : MonoBehaviour
     [SerializeField] private bool unlimitHP = false;
     [SerializeField] private bool minigun = false;
 
+    [SerializeField] private int fpsLimit = 300;
+
     [Space(20)]
     private InputActions _inputActions = null;
     [SerializeField] private SpaceshipView spaceship;
     [SerializeField] private SpaceshipView spaceshipPrefab;
     [SerializeField] private float rotationSpeed = 250.0f;
-    [SerializeField] private float accelerate = 0.2f;
-    [SerializeField] private float decelerate = 0.075f;
-    [SerializeField] private float maxVelocity = 0.3f;
+    [SerializeField] private float accelerate = 6.0f;
+    [SerializeField] private float decelerate = 6.0f;
+    [SerializeField] private float maxVelocity = 4.0f;
     [SerializeField] private Camera cam;
 
     [SerializeField] private float dieTimeout = 1.0f;
@@ -68,7 +70,7 @@ public class Test : MonoBehaviour
 
         _contactFilter2D = new ContactFilter2D().NoFilter();
         _contactFilter2D.SetLayerMask(LayerMask.GetMask("Rocks"));
-        Application.targetFrameRate = 24;
+        Application.targetFrameRate = fpsLimit;
         QualitySettings.vSyncCount = 0;
 
         _inputActions = new InputActions();
@@ -197,7 +199,7 @@ public class Test : MonoBehaviour
             _rocks.ForEach(rock =>
             {
                 rock.Instance.transform.position += rock.Velocity * Time.deltaTime;
-                TeleportFromEdges(rock.Instance.transform, _viewportSizeInWorld, 1.0f);
+                TeleportFromEdges(rock.Instance.transform, _viewportSizeInWorld, 0.0f);
             });
             yield return null;
         }
@@ -243,6 +245,7 @@ public class Test : MonoBehaviour
     private IEnumerator Bullet()
     {
         if (spaceship == null) yield break;
+        _bulletVibrateTime = 0.1f;
         spaceship.FireSound.Play();
         var collisions = new Collider2D[1];
         var bullet = Instantiate(bulletPrefab, spaceship.transform.position, spaceship.transform.rotation).GetComponent<PolygonCollider2D>();
@@ -255,6 +258,7 @@ public class Test : MonoBehaviour
             bullet.OverlapCollider(_contactFilter2D, collisions);
             if (collisions[0] != null)
             {
+                _explosionVibrateTime = 0.3f;
                 var rock = _rocks.FirstOrDefault(f => f.Instance.Equals(collisions[0].gameObject));
                 var pos = rock.Instance.transform.position;
                 
@@ -289,6 +293,7 @@ public class Test : MonoBehaviour
 
     private IEnumerator GameOver()
     {
+        ResetVibrate();
         health = Mathf.Clamp(health - 1, 0, 5);
         UpdateHealthIcons();
         Destroy(spaceship.gameObject);
@@ -314,10 +319,66 @@ public class Test : MonoBehaviour
     private Vector3 _viewportSizeInWorld;
     private StringBuilder _sb = new StringBuilder();
     private Collider2D[] _collisions = new Collider2D[1];
+
+    private float _explosionVibrateTime = 0.0f;
+    private float _engineVibrateTime = 0.0f;
+    private float _bulletVibrateTime = 0.0f;
+
+    private void ResetVibrate()
+    {
+        _explosionVibrateTime = 0.0f;
+        _engineVibrateTime = 0.0f;
+        _bulletVibrateTime = 0.0f;
+        Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
+    }
+
+    private bool _explosionTriggerOnce = true;
+    private bool _engineTriggerOnce = true;
+    private bool _bulletTriggerOnce = true;
     private void Update()
     {
-        if (unlimitHP) health = 5;
+        if (_explosionVibrateTime > 0.01f)
+        {
+            _bulletTriggerOnce = true;
+            _engineTriggerOnce = true;
+            if (_explosionTriggerOnce)
+            {
+                _explosionTriggerOnce = false;
+                Gamepad.current.SetMotorSpeeds(1.0f, 1.0f); //Explosion
+            }
+        }
+        else if (_bulletVibrateTime > 0.01f)
+        {
+            _explosionTriggerOnce = true;
+            _engineTriggerOnce = true;
+            if (_bulletTriggerOnce)
+            {
+                _bulletTriggerOnce = false;
+                Gamepad.current.SetMotorSpeeds(0.5f, 0.0f); //Bullet
+            }
+        }
+        else if (_engineVibrateTime > 0.01f)
+        {
+            _bulletTriggerOnce = true;
+            _explosionTriggerOnce = true;
+            if (_engineTriggerOnce)
+            {
+                _engineTriggerOnce = false;
+                Gamepad.current.SetMotorSpeeds(0.0f, 0.2f); //Engine
+            }
+        }
+        else
+        {
+            _bulletTriggerOnce = true;
+            _explosionTriggerOnce = true;
+            _engineTriggerOnce = true;
+            Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
+        }
+        _explosionVibrateTime = Mathf.Clamp(_explosionVibrateTime - Time.deltaTime, 0.0f, float.MaxValue);
+        _bulletVibrateTime = Mathf.Clamp(_bulletVibrateTime - Time.deltaTime, 0.0f, float.MaxValue);
+        _engineVibrateTime = Mathf.Clamp(_engineVibrateTime - Time.deltaTime, 0.0f, float.MaxValue);
 
+        if (unlimitHP) health = 5;
         if (spawnRockTest)
         {
             spawnRockTest = false;
@@ -346,12 +407,14 @@ public class Test : MonoBehaviour
 
         if (_move.y > 0.1f)
         {
+            _engineVibrateTime = 0.3f;
             if (!spaceship.EngineFireEffect.activeInHierarchy) spaceship.EngineFireEffect.SetActive(true);
             if (!spaceship.EngineFireAudio.isPlaying) spaceship.EngineFireAudio.Play();
             _currentVelocity += spaceship.transform.up.normalized * Mathf.Clamp(_move.y, 0.0f, 1.0f) * accelerate * Time.deltaTime;
         }
         else
         {
+            _engineVibrateTime = 0.0f;
             if (spaceship.EngineFireEffect.activeInHierarchy) spaceship.EngineFireEffect.SetActive(false);
             if (spaceship.EngineFireAudio.isPlaying) spaceship.EngineFireAudio.Stop();
             if (_currentVelocity.magnitude > 0.01f)
@@ -364,7 +427,7 @@ public class Test : MonoBehaviour
             }
         }
         _currentVelocity = Vector3.ClampMagnitude(_currentVelocity, maxVelocity);
-        spaceship.transform.position += _currentVelocity;
+        spaceship.transform.position += _currentVelocity * Time.deltaTime;
 
         TeleportFromEdges(spaceship.transform, _viewportSizeInWorld, 0.0f);
     }
@@ -424,6 +487,7 @@ public class Test : MonoBehaviour
     
     private void OnDisable()
     {
+        ResetVibrate();
         if (currentScore >= totalScore)
         {
             PlayerPrefs.SetInt("score", currentScore);
