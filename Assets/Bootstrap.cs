@@ -1,14 +1,12 @@
 using UnityEngine;
-using AsteroidGame;
+using AsteroidsGameLogic;
 using System.Collections.Generic;
 
 public class Bootstrap : MonoBehaviour
 {
     [SerializeField] private List<GameObject> dontDestroyOnLoad;
 
-    internal Simulation Simulation { get; private set; }
-
-    private void OnEnable()
+    private void SetupFrameRate()
     {
 #if UNITY_STANDALONE
         Application.targetFrameRate = -1;
@@ -17,24 +15,21 @@ public class Bootstrap : MonoBehaviour
         Application.targetFrameRate = (int)Screen.currentResolution.refreshRateRatio.value;
         QualitySettings.vSyncCount = 0;
 #endif
-
-        dontDestroyOnLoad.ForEach(obj => DontDestroyOnLoad(obj));
-        Simulation = new Simulation();
-        Simulation.OnUpdate += UpdateGame;
-        Simulation.Init(delayMs: 100);
     }
 
-    private void UpdateGame(object sender, DeltaTimeEventArgs e)
+    private GlobalGameSM _globalGameStateMachine = null;
+
+    private void OnEnable()
     {
-        Debug.Log($"Test: {e.DeltaTime}");
+        SetupFrameRate();
+        dontDestroyOnLoad.ForEach(obj => DontDestroyOnLoad(obj));
+
+        _globalGameStateMachine = new GlobalGameSM();
+        _globalGameStateMachine.ChangeGameState(GlobalGameState.MainMenu);
     }
 
     private void OnDisable()
     {
-        Simulation.Dispose();
-#if UNITY_EDITOR
-        Application.targetFrameRate = 60;
-        QualitySettings.vSyncCount = 0;
-#endif
+        _globalGameStateMachine.ChangeGameState(GlobalGameState.None);
     }
 }

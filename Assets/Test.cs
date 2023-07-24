@@ -3,21 +3,23 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System.Collections;
+using static InputActions;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
+using UnityEngine.InputSystem.Users;
+using UnityEngine.InputSystem.XInput;
+using UnityEngine.InputSystem.DualShock;
 
 public class Test : MonoBehaviour
 {
+    [SerializeField] private PlayerInput playerInput;
+
     [Header("CheatMenu")]
     [SerializeField] private bool spawnRockTest = false;
     [SerializeField] private bool godMod = false;
     [SerializeField] private bool unlimitHP = false;
     [SerializeField] private bool minigun = false;
-
     [SerializeField] private int fpsLimit = 300;
-
-    [Space(20)]
-    private InputActions _inputActions = null;
     [SerializeField] private SpaceshipView spaceship;
     [SerializeField] private SpaceshipView spaceshipPrefab;
     [SerializeField] private float rotationSpeed = 250.0f;
@@ -25,17 +27,11 @@ public class Test : MonoBehaviour
     [SerializeField] private float decelerate = 6.0f;
     [SerializeField] private float maxVelocity = 4.0f;
     [SerializeField] private Camera cam;
-
     [SerializeField] private float dieTimeout = 1.0f;
-
-
-
     [SerializeField] private float rockKillZoneRadius = 1.8f;
-
     [SerializeField] private int largeScore = 10;
     [SerializeField] private int mediumScore = 40;
     [SerializeField] private int smallScore = 100;
-
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 8.0f;
     [SerializeField] private GameObject[] rockPrefabs;
@@ -46,11 +42,9 @@ public class Test : MonoBehaviour
     [SerializeField] private int health = 5;
     [SerializeField] private int totalScore = 0;
     [SerializeField] private int currentScore = 0;
-
     [SerializeField] private float bigRockSpeedRange;
     [SerializeField] private float mediumRockSpeedRange;
     [SerializeField] private float smallRockSpeedRange;
-
     [SerializeField] private GameObject explosionEffect;
     [SerializeField] private AudioSource gameOverAudio;
     [SerializeField] private AudioSource clickAudio;
@@ -72,16 +66,33 @@ public class Test : MonoBehaviour
         _contactFilter2D.SetLayerMask(LayerMask.GetMask("Rocks"));
         Application.targetFrameRate = fpsLimit;
         QualitySettings.vSyncCount = 0;
+        InputSystem.onDeviceChange += InputSystem_onDeviceChange;
 
-        _inputActions = new InputActions();
-        _inputActions.Player.Move.started += Click;
-        _inputActions.Player.Move.performed += Move;
-        _inputActions.Player.Move.canceled += Move;
-        _inputActions.Player.Fire.performed += Fire;
-        _inputActions.Player.Enable();
+        playerInput.actions["Move"].performed += OnMove;
+        playerInput.actions["Move"].canceled += OnMove;
+        playerInput.actions["Fire"].performed += OnFire;
 
         StartCoroutine(SpawnRocks());
         StartCoroutine(TextCoroutine());
+    }
+
+    private void OnInputDeviceChange(InputUser user, InputUserChange change, InputDevice device)
+    {
+        if (change == InputUserChange.ControlSchemeChanged)
+        {
+            Debug.Log("Test");
+        }
+    }
+
+    private bool _usedGamePad = false;
+    private void InputSystem_onDeviceChange(InputDevice arg1, InputDeviceChange arg2)
+    {
+        switch (arg1)
+        {
+            case DualShockGamepad: _usedGamePad = true; break;
+            case XInputController: _usedGamePad = true; break;
+            default: _usedGamePad = false; break;
+        }
     }
 
     private void Click(InputAction.CallbackContext obj)
@@ -206,9 +217,11 @@ public class Test : MonoBehaviour
     }
 
     private Vector2 _move = Vector2.zero;
-    private void Move(InputAction.CallbackContext obj) => _move = obj.ReadValue<Vector2>();
-    private void Fire(InputAction.CallbackContext obj)
+
+    public void OnMove(InputAction.CallbackContext obj) => _move = obj.ReadValue<Vector2>();
+    public void OnFire(InputAction.CallbackContext obj)
     {
+        Debug.Log("Fire");
         clickAudio.Play();
         if (minigun)
         {
@@ -329,7 +342,7 @@ public class Test : MonoBehaviour
         _explosionVibrateTime = 0.0f;
         _engineVibrateTime = 0.0f;
         _bulletVibrateTime = 0.0f;
-        Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
+        if (_usedGamePad) Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
     }
 
     private bool _explosionTriggerOnce = true;
@@ -344,7 +357,7 @@ public class Test : MonoBehaviour
             if (_explosionTriggerOnce)
             {
                 _explosionTriggerOnce = false;
-                Gamepad.current.SetMotorSpeeds(1.0f, 1.0f); //Explosion
+                if (_usedGamePad) Gamepad.current.SetMotorSpeeds(1.0f, 1.0f); //Explosion
             }
         }
         else if (_bulletVibrateTime > 0.01f)
@@ -354,7 +367,7 @@ public class Test : MonoBehaviour
             if (_bulletTriggerOnce)
             {
                 _bulletTriggerOnce = false;
-                Gamepad.current.SetMotorSpeeds(0.5f, 0.0f); //Bullet
+                if (_usedGamePad) Gamepad.current.SetMotorSpeeds(0.5f, 0.0f); //Bullet
             }
         }
         else if (_engineVibrateTime > 0.01f)
@@ -364,7 +377,7 @@ public class Test : MonoBehaviour
             if (_engineTriggerOnce)
             {
                 _engineTriggerOnce = false;
-                Gamepad.current.SetMotorSpeeds(0.0f, 0.2f); //Engine
+                if (_usedGamePad) Gamepad.current.SetMotorSpeeds(0.0f, 0.2f); //Engine
             }
         }
         else
@@ -372,7 +385,7 @@ public class Test : MonoBehaviour
             _bulletTriggerOnce = true;
             _explosionTriggerOnce = true;
             _engineTriggerOnce = true;
-            Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
+            if (_usedGamePad) Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
         }
         _explosionVibrateTime = Mathf.Clamp(_explosionVibrateTime - Time.deltaTime, 0.0f, float.MaxValue);
         _bulletVibrateTime = Mathf.Clamp(_bulletVibrateTime - Time.deltaTime, 0.0f, float.MaxValue);
@@ -495,12 +508,9 @@ public class Test : MonoBehaviour
         }
         StopCoroutine(TextCoroutine());
         StopCoroutine(SpawnRocks());
-        _inputActions.Player.Disable();
-        _inputActions.Player.Move.started -= Click;
-        _inputActions.Player.Move.performed -= Move;
-        _inputActions.Player.Move.canceled -= Move;
-        _inputActions.Player.Fire.performed -= Fire;
-        _inputActions.Dispose();
-        _inputActions = null;
+        playerInput.actions["Move"].performed -= OnMove;
+        playerInput.actions["Move"].canceled -= OnMove;
+        playerInput.actions["Fire"].performed -= OnFire;
+        InputUser.onChange -= OnInputDeviceChange;
     }
 }
