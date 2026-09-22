@@ -20,7 +20,7 @@ public class Test : MonoBehaviour
     [SerializeField] private bool unlimitHP = false;
     [SerializeField] private bool minigun = false;
     [SerializeField] private int fpsLimit = 300;
-    [SerializeField] private SpaceshipView spaceship;
+    [SerializeField] public SpaceshipView spaceship;
     [SerializeField] private SpaceshipView spaceshipPrefab;
     [SerializeField] private float rotationSpeed = 250.0f;
     [SerializeField] private float accelerate = 6.0f;
@@ -28,6 +28,7 @@ public class Test : MonoBehaviour
     [SerializeField] private float maxVelocity = 4.0f;
     [SerializeField] private Camera cam;
     [SerializeField] private float dieTimeout = 1.0f;
+    [SerializeField] private float dieFullTimeout = 6.0f;
     [SerializeField] private float rockKillZoneRadius = 1.8f;
     [SerializeField] private int largeScore = 10;
     [SerializeField] private int mediumScore = 40;
@@ -66,7 +67,7 @@ public class Test : MonoBehaviour
         _contactFilter2D.SetLayerMask(LayerMask.GetMask("Rocks"));
         Application.targetFrameRate = fpsLimit;
         QualitySettings.vSyncCount = 0;
-        InputSystem.onDeviceChange += InputSystem_onDeviceChange;
+        //InputSystem.onDeviceChange += InputSystem_onDeviceChange;
 
         playerInput.actions["Move"].performed += OnMove;
         playerInput.actions["Move"].canceled += OnMove;
@@ -84,16 +85,17 @@ public class Test : MonoBehaviour
         }
     }
 
-    private bool _usedGamePad = false;
-    private void InputSystem_onDeviceChange(InputDevice arg1, InputDeviceChange arg2)
-    {
-        switch (arg1)
-        {
-            case DualShockGamepad: _usedGamePad = true; break;
-            case XInputController: _usedGamePad = true; break;
-            default: _usedGamePad = false; break;
-        }
-    }
+    private bool _usedGamePad = true;
+    //private void InputSystem_onDeviceChange(InputDevice arg1, InputDeviceChange arg2)
+    //{
+    //    Debug.Log(arg1);
+    //    switch (arg1)
+    //    {
+    //        case DualShockGamepad: _usedGamePad = true; break;
+    //        case XInputController: _usedGamePad = true; break;
+    //        default: _usedGamePad = false; break;
+    //    }
+    //}
 
     private void Click(InputAction.CallbackContext obj)
     {
@@ -268,7 +270,7 @@ public class Test : MonoBehaviour
             bullet.transform.position += bullet.transform.up * bulletSpeed * Time.deltaTime;
             TeleportFromEdges(bullet.transform, _viewportSizeInWorld, 0.5f);
             collisions[0] = null;
-            bullet.OverlapCollider(_contactFilter2D, collisions);
+            bullet.Overlap(_contactFilter2D, collisions);
             if (collisions[0] != null)
             {
                 _explosionVibrateTime = 0.3f;
@@ -315,7 +317,14 @@ public class Test : MonoBehaviour
         if (!gameOverText.activeInHierarchy) gameOverText.SetActive(true);
         if (health == 0) gameOverAudio.Play();
         yield return new WaitForSeconds(dieTimeout);
-        if (health == 0) yield break;
+        if (health == 0)
+        {
+            yield return new WaitForSeconds(dieFullTimeout);
+            health = 5;
+            currentScore = 0;
+            UpdateScoreText();
+            UpdateHealthIcons();
+        }
         if (gameOverText.activeInHierarchy) gameOverText.SetActive(false);
         spaceship = Instantiate(spaceshipPrefab.gameObject, GetSpawnPointWithNotOverlap(), Quaternion.identity).GetComponent<SpaceshipView>();
     }
@@ -342,7 +351,7 @@ public class Test : MonoBehaviour
         _explosionVibrateTime = 0.0f;
         _engineVibrateTime = 0.0f;
         _bulletVibrateTime = 0.0f;
-        if (_usedGamePad) Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
+        if (Gamepad.current != null) Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
     }
 
     private bool _explosionTriggerOnce = true;
@@ -357,7 +366,7 @@ public class Test : MonoBehaviour
             if (_explosionTriggerOnce)
             {
                 _explosionTriggerOnce = false;
-                if (_usedGamePad) Gamepad.current.SetMotorSpeeds(1.0f, 1.0f); //Explosion
+                if (Gamepad.current != null) Gamepad.current.SetMotorSpeeds(1.0f, 1.0f); //Explosion
             }
         }
         else if (_bulletVibrateTime > 0.01f)
@@ -367,7 +376,7 @@ public class Test : MonoBehaviour
             if (_bulletTriggerOnce)
             {
                 _bulletTriggerOnce = false;
-                if (_usedGamePad) Gamepad.current.SetMotorSpeeds(0.5f, 0.0f); //Bullet
+                if (Gamepad.current != null) Gamepad.current.SetMotorSpeeds(0.5f, 0.0f); //Bullet
             }
         }
         else if (_engineVibrateTime > 0.01f)
@@ -377,7 +386,7 @@ public class Test : MonoBehaviour
             if (_engineTriggerOnce)
             {
                 _engineTriggerOnce = false;
-                if (_usedGamePad) Gamepad.current.SetMotorSpeeds(0.0f, 0.2f); //Engine
+                if (Gamepad.current != null) Gamepad.current.SetMotorSpeeds(0.0f, 0.15f); //Engine
             }
         }
         else
@@ -385,7 +394,7 @@ public class Test : MonoBehaviour
             _bulletTriggerOnce = true;
             _explosionTriggerOnce = true;
             _engineTriggerOnce = true;
-            if (_usedGamePad) Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
+            if (Gamepad.current != null) Gamepad.current.SetMotorSpeeds(0.0f, 0.0f);
         }
         _explosionVibrateTime = Mathf.Clamp(_explosionVibrateTime - Time.deltaTime, 0.0f, float.MaxValue);
         _bulletVibrateTime = Mathf.Clamp(_bulletVibrateTime - Time.deltaTime, 0.0f, float.MaxValue);
@@ -406,7 +415,7 @@ public class Test : MonoBehaviour
         if (spaceship == null) return;
 
         _collisions[0] = null;
-        spaceship.PolygonCollider2D.OverlapCollider(_contactFilter2D, _collisions);
+        spaceship.PolygonCollider2D.Overlap(_contactFilter2D, _collisions);
         if (_collisions[0] != null && godMod == false)
         {
             StartCoroutine(Explosion(spaceship.transform.position));
@@ -511,6 +520,6 @@ public class Test : MonoBehaviour
         playerInput.actions["Move"].performed -= OnMove;
         playerInput.actions["Move"].canceled -= OnMove;
         playerInput.actions["Fire"].performed -= OnFire;
-        InputUser.onChange -= OnInputDeviceChange;
+        //InputUser.onChange -= OnInputDeviceChange;
     }
 }

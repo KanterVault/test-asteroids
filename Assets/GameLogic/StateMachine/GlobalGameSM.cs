@@ -2,16 +2,16 @@ using System;
 
 namespace AsteroidsGameLogic
 {
-    internal class GlobalGameSM : IDisposable
+    public class GlobalGameSM : IDisposable
     {
         private GlobalGameState _currentGlobalGameState { get; set; }
 
-        internal GlobalGameSM()
+        public GlobalGameSM()
         {
             _currentGlobalGameState = GlobalGameState.None;
         }
 
-        internal void ChangeGameState(GlobalGameState gameState)
+        public void ChangeGameState(GlobalGameState gameState)
         {
             switch (gameState)
             {
